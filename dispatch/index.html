@@ -432,6 +432,13 @@
     background: white;
   }
   .form-field textarea { resize: vertical; min-height: 64px; }
+  .form-field.field-error input,
+  .form-field.field-error textarea,
+  .form-field.field-error .searchable-dropdown input {
+    border-color: var(--red-400);
+    background: var(--red-50);
+  }
+  .form-field.field-error label { color: var(--red-500); }
   .form-field .helper {
     font-size: 0.72rem;
     color: var(--slate-400);
@@ -1198,8 +1205,15 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
       .sort((a, b) => (b[1].created || 0) - (a[1].created || 0));
   }, [entries, user.name]);
 
+  const [errors, setErrors] = useState({});
+
   function handleAdd() {
-    if (!client || !desc || !hours) return;
+    const e = {};
+    if (!client) e.client = true;
+    if (!desc) e.desc = true;
+    if (!hours) e.hours = true;
+    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    setErrors({});
     onAdd({ client, desc, hours: parseFloat(hours), blocked, se: user.name, created: Date.now() });
     setClient(''); setDesc(''); setHours(''); setBlocked('Not blocked');
   }
@@ -1216,14 +1230,14 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
             <label>Your Name</label>
             <input type="text" value={user.name} readOnly />
           </div>
-          <div className="form-field">
+          <div className={"form-field" + (errors.hours ? " field-error" : "")}>
             <label>Estimated Hours</label>
-            <input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} placeholder="0" />
+            <input type="number" min="0" step="0.5" value={hours} onChange={e => { setHours(e.target.value); setErrors(prev => ({...prev, hours: false})); }} placeholder="0" />
             <div className="helper">Be conservative. If you think it's 1 hour, put 2. If you think it's 4, put 8.</div>
           </div>
-          <div className="form-field">
+          <div className={"form-field" + (errors.client ? " field-error" : "")}>
             <label>Client Name</label>
-            <ClientDropdown value={client} onChange={setClient} />
+            <ClientDropdown value={client} onChange={v => { setClient(v); setErrors(prev => ({...prev, client: false})); }} />
           </div>
           <div className="form-field">
             <label>Blocked By</label>
@@ -1231,9 +1245,9 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
               {BLOCKED_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
-          <div className="form-field full">
+          <div className={"form-field full" + (errors.desc ? " field-error" : "")}>
             <label>Task / Issue Description</label>
-            <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What needs to be done?" />
+            <textarea value={desc} onChange={e => { setDesc(e.target.value); setErrors(prev => ({...prev, desc: false})); }} placeholder="What needs to be done?" />
           </div>
         </div>
         <button className="btn-add" onClick={handleAdd}>Add Entry</button>
