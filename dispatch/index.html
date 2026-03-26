@@ -874,13 +874,13 @@ const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 // ---- Firebase Setup ----
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBaWMl_Mx2cjphSBwfeZ0yfyp96X6_zZNk",
+  authDomain: "boolean-dispatch-d8b2c.firebaseapp.com",
+  databaseURL: "https://boolean-dispatch-d8b2c-default-rtdb.firebaseio.com",
+  projectId: "boolean-dispatch-d8b2c",
+  storageBucket: "boolean-dispatch-d8b2c.firebasestorage.app",
+  messagingSenderId: "568207705003",
+  appId: "1:568207705003:web:7fe71b4d3e4f73c094c8ee"
 };
 
 let db = null;
@@ -1558,6 +1558,19 @@ function App() {
   const firebaseEntries = useFirebaseValue(firebasePath);
 
   const entries = firebaseReady ? (firebaseEntries || {}) : localEntries;
+
+  // Seed Firebase with demo data if room is empty on first load
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (firebaseReady && user && !seeded && firebaseEntries === null) {
+      // Room is empty — seed it with demo data
+      Object.entries(localEntries).forEach(([id, entry]) => {
+        setFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`, entry);
+      });
+      setSeeded(true);
+    }
+    if (firebaseEntries !== null) setSeeded(true);
+  }, [firebaseReady, user, firebaseEntries, seeded]);
 
   // Spectators default to consolidated view
   useEffect(() => {
