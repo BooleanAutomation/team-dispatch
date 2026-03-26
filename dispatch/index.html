@@ -1530,65 +1530,12 @@ function App() {
   const [user, setUser] = useState(null); // { name, role, displayName }
   const [view, setView] = useState('form'); // 'form' | 'consolidated'
   const [personaIndex, setPersonaIndex] = useState(0); // Cody-admin persona cycling
-  const [localEntries, setLocalEntries] = useState({
-    // Seed data based on Clockify time tracking
-    // Marcel — Blair is his world
-    s1: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'HubSpot deal pipeline automation broken — deals stuck in Bid Scheduled, not moving to Won stage after PaintScout acceptance', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 100000 },
-    s2: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'Weekly reporting dashboard — client wants a consolidated view of all open estimates vs closed jobs', hours: 6, blocked: 'No time', created: Date.now() - 90000 },
-    s3: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'CompanyCam integration throwing errors on new project creation — photos not syncing to correct deals', hours: 4, blocked: 'Dev/system dependency', created: Date.now() - 80000 },
-
-    // Dan — spread across multiple clients, busiest SE
-    s4: { se: 'Dan', client: 'Pro Rise Painting', desc: 'Full CRM onboarding — building pipeline stages, custom properties, and automation workflows from scratch', hours: 16, blocked: 'Not blocked', created: Date.now() - 70000 },
-    s5: { se: 'Dan', client: 'Roll Call Painting', desc: 'QuickBooks integration setup — mapping invoice line items to HubSpot deal properties', hours: 10, blocked: 'Waiting on client', created: Date.now() - 60000 },
-    s6: { se: 'Dan', client: 'Paragon Painting', desc: 'PaintScout estimate templates need rebuilding after client changed their pricing structure', hours: 8, blocked: 'Not blocked', created: Date.now() - 50000 },
-    s7: { se: 'Dan', client: 'Heiler Painting', desc: 'Lead routing automation — new leads from website form not assigning to correct sales rep', hours: 4, blocked: 'Knowledge gap', created: Date.now() - 45000 },
-    s8: { se: 'Dan', client: 'Pro Rise Painting', desc: 'YCBM booking page configuration — calendar sync issues with Google Workspace', hours: 6, blocked: 'Waiting on client', created: Date.now() - 40000 },
-
-    // Rensy — Go Painting and Kennedy heavy
-    s9: { se: 'Rensy', client: 'GoPainting', desc: 'Airtable job tracker rebuild — current base is maxed out, need to restructure for scale', hours: 12, blocked: 'No time', created: Date.now() - 35000 },
-    s10: { se: 'Rensy', client: 'Kennedy Painting', desc: 'Automated follow-up sequence not firing after estimate sent — workflow trigger misconfigured', hours: 6, blocked: 'Dev/system dependency', created: Date.now() - 30000 },
-    s11: { se: 'Rensy', client: 'Kennedy Painting', desc: 'Client onboarding new estimator — need to set up YCBM page, HubSpot user, CompanyCam access', hours: 4, blocked: 'Waiting on client', created: Date.now() - 25000 },
-    s12: { se: 'Rensy', client: 'AllBright Pro Painting', desc: 'Monthly reporting automation — pulling data from HubSpot + QBO into a single client-facing report', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 20000 },
-
-    // Riz — ACP, SNL, Paint Denver
-    s13: { se: 'Riz', client: 'ACP Painting', desc: 'Deal stage automation overhaul — too many manual steps between Bid Sent and Job Won', hours: 10, blocked: 'Not blocked', created: Date.now() - 18000 },
-    s14: { se: 'Riz', client: 'SNL Painting', desc: 'Post-training cleanup — fixing workflows that were demo\'d during Primer session but never finalized', hours: 6, blocked: 'No time', created: Date.now() - 16000 },
-    s15: { se: 'Riz', client: 'Paint Denver', desc: 'Website form → HubSpot pipeline — contact creation failing on duplicate emails', hours: 4, blocked: 'Dev/system dependency', created: Date.now() - 14000 },
-    s16: { se: 'Riz', client: 'C and A Painting', desc: 'Initial discovery + scoping — new automation client, need to map their current process', hours: 3, blocked: 'Waiting on client', created: Date.now() - 12000 },
-
-    // Celine — 519, Highfill, Connor, Funky, All American
-    s17: { se: 'Celine', client: '519 Painters', desc: 'Invoice automation — QBO Sales Receipts not matching HubSpot deal amounts after partial payments', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 11000 },
-    s18: { se: 'Celine', client: 'Highfill Painting', desc: 'CompanyCam → HubSpot photo sync — client wants job photos automatically attached to deal records', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 10000 },
-    s19: { se: 'Celine', client: 'Connor Painting', desc: 'Re-engagement campaign setup — automated emails to lost deals from last 6 months', hours: 5, blocked: 'Not blocked', created: Date.now() - 9000 },
-    s20: { se: 'Celine', client: 'Funky Painting', desc: 'PaintScout template issues — line items not calculating tax correctly for commercial jobs', hours: 4, blocked: 'Waiting on client', created: Date.now() - 8000 },
-    s21: { se: 'Celine', client: 'All American Painting Plus', desc: 'Workflow audit — client reports getting double emails on deal stage changes', hours: 4, blocked: 'Not blocked', created: Date.now() - 7000 },
-
-    // Veronica — lighter load, EA work
-    s22: { se: 'Veronica', client: 'Integrity Painting', desc: 'Monthly billing reconciliation — subscription amounts in QBO don\'t match contract terms', hours: 3, blocked: 'Waiting on client', created: Date.now() - 6000 },
-    s23: { se: 'Veronica', client: 'McLains Painting', desc: 'Client communication backlog — 4 unanswered support threads from last week', hours: 2, blocked: 'No time', created: Date.now() - 5000 },
-    s25: { se: 'Aervinn', client: 'Mikes Quality Painting', desc: 'PaintScout quote sync failing — estimates created manually in PS not pushing to HubSpot deal', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 3500 },
-    s26: { se: 'Aervinn', client: 'Emerson Paints', desc: 'Workflow automation for job scheduling — client wants automated crew assignment based on job type', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 3000 },
-    s27: { se: 'Aervinn', client: 'Service Built', desc: 'New client onboarding — HubSpot pipeline setup, YCBM config, CompanyCam project templates', hours: 5, blocked: 'Not blocked', created: Date.now() - 2500 },
-    s24: { se: 'Norman', client: 'Boolean (Internal)', desc: "Stare at Cody's poor attempt to build a meeting tool and say nothing because I'm @mention only", hours: 40, blocked: 'Not blocked', created: Date.now() - 4000 },
-  });
+  const [localEntries, setLocalEntries] = useState({});
 
   const firebasePath = user ? `rooms/${ROOM_CODE}/entries` : null;
   const firebaseEntries = useFirebaseValue(firebasePath);
 
   const entries = firebaseReady ? (firebaseEntries || {}) : localEntries;
-
-  // Seed Firebase with demo data if room is empty on first load
-  const [seeded, setSeeded] = useState(false);
-  useEffect(() => {
-    if (firebaseReady && user && !seeded && firebaseEntries === null) {
-      // Room is empty — seed it with demo data
-      Object.entries(localEntries).forEach(([id, entry]) => {
-        setFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`, entry);
-      });
-      setSeeded(true);
-    }
-    if (firebaseEntries !== null) setSeeded(true);
-  }, [firebaseReady, user, firebaseEntries, seeded]);
 
   // Spectators default to consolidated view
   useEffect(() => {
