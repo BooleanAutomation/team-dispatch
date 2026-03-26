@@ -439,6 +439,46 @@
     background: var(--red-50);
   }
   .form-field.field-error label { color: var(--red-500); }
+
+  /* Energy picker */
+  .energy-picker {
+    display: flex;
+    gap: 6px;
+  }
+  .energy-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border: 2px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    background: var(--slate-50);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+  .energy-btn:hover { border-color: var(--slate-300); background: white; }
+  .energy-btn.selected { background: white; transform: scale(1.05); }
+  .energy-btn .energy-emoji { font-size: 1.2rem; line-height: 1; }
+  .energy-btn .energy-label { font-size: 0.6rem; font-weight: 600; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.03em; }
+  .energy-btn.selected .energy-label { color: var(--slate-700); }
+
+  /* Energy badge in table */
+  .energy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .energy-badge .energy-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
   .form-field .helper {
     font-size: 0.72rem;
     color: var(--slate-400);
@@ -967,6 +1007,13 @@ const CLIENTS = [
   'Select Painting & Coatings', 'Service Built', 'Steve Holloway Painting'
 ];
 const BLOCKED_OPTIONS = ['Waiting on client', 'Knowledge gap', 'No time', 'Dev/system dependency', 'Not blocked'];
+const ENERGY_LEVELS = [
+  { value: -2, emoji: '💀', label: 'Brutal', color: '#ef4444' },
+  { value: -1, emoji: '😩', label: 'Draining', color: '#f59e0b' },
+  { value: 0, emoji: '😐', label: 'Neutral', color: '#94a3b8' },
+  { value: 1, emoji: '😊', label: 'Good', color: '#34d399' },
+  { value: 2, emoji: '🔥', label: 'Fired up', color: '#10b981' },
+];
 const SE_COLORS = {
   Marcel: '#10b981', Dan: '#3b82f6', Rensy: '#f59e0b', Riz: '#ef4444',
   Celine: '#a855f7', Veronica: '#06b6d4', Cody: '#64748b',
@@ -1158,6 +1205,7 @@ function EditModal({ entry, onSave, onClose }) {
   const [desc, setDesc] = useState(entry.desc);
   const [hours, setHours] = useState(entry.hours);
   const [blocked, setBlocked] = useState(entry.blocked);
+  const [energy, setEnergy] = useState(entry.energy != null ? entry.energy : 0);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -1175,16 +1223,31 @@ function EditModal({ entry, onSave, onClose }) {
           <label>Est. Hours</label>
           <input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
         </div>
-        <div className="form-field" style={{ marginBottom: 0 }}>
+        <div className="form-field" style={{ marginBottom: 12 }}>
           <label>Blocked By</label>
           <select value={blocked} onChange={e => setBlocked(e.target.value)}>
             {BLOCKED_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
+        <div className="form-field" style={{ marginBottom: 0 }}>
+          <label>Energy</label>
+          <div className="energy-picker">
+            {ENERGY_LEVELS.map(l => (
+              <button key={l.value} type="button"
+                className={"energy-btn" + (energy === l.value ? " selected" : "")}
+                style={energy === l.value ? { borderColor: l.color } : {}}
+                onClick={() => setEnergy(l.value)}
+              >
+                <span className="energy-emoji">{l.emoji}</span>
+                <span className="energy-label">{l.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="modal-actions">
           <button className="btn-cancel" onClick={onClose}>Cancel</button>
           <button className="btn-save" onClick={() => {
-            if (client && desc && hours) onSave({ ...entry, client, desc, hours: parseFloat(hours), blocked });
+            if (client && desc && hours) onSave({ ...entry, client, desc, hours: parseFloat(hours), blocked, energy });
           }}>Save</button>
         </div>
       </div>
@@ -1198,6 +1261,7 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
   const [desc, setDesc] = useState('');
   const [hours, setHours] = useState('');
   const [blocked, setBlocked] = useState('Not blocked');
+  const [energy, setEnergy] = useState(0);
   const [editing, setEditing] = useState(null);
 
   const myEntries = useMemo(() => {
@@ -1216,10 +1280,9 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
     if (!hours) e.hours = true;
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
-    const entry = { client, desc, hours: parseFloat(hours), blocked, se: user.name, created: Date.now() };
-    console.log('Adding entry:', entry);
+    const entry = { client, desc, hours: parseFloat(hours), blocked, energy, se: user.name, created: Date.now() };
     onAdd(entry);
-    setClient(''); setDesc(''); setHours(''); setBlocked('Not blocked');
+    setClient(''); setDesc(''); setHours(''); setBlocked('Not blocked'); setEnergy(0);
   }
 
   return (
@@ -1253,6 +1316,21 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
             <label>Task / Issue Description</label>
             <textarea value={desc} onChange={e => { setDesc(e.target.value); setErrors(prev => ({...prev, desc: false})); }} placeholder="What needs to be done?" />
           </div>
+          <div className="form-field full">
+            <label>Energy</label>
+            <div className="energy-picker">
+              {ENERGY_LEVELS.map(l => (
+                <button key={l.value} type="button"
+                  className={"energy-btn" + (energy === l.value ? " selected" : "")}
+                  style={energy === l.value ? { borderColor: l.color } : {}}
+                  onClick={() => setEnergy(l.value)}
+                >
+                  <span className="energy-emoji">{l.emoji}</span>
+                  <span className="energy-label">{l.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <button className="btn-add" onClick={handleAdd}>Add Entry</button>
       </div>
@@ -1269,6 +1347,7 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
                     <span className="client-name">{e.client}</span>
                     <span className="hours">{e.hours}h</span>
                     <span className={"blocked-badge " + blockedClass(e.blocked)}>{e.blocked}</span>
+                    {(() => { const lvl = ENERGY_LEVELS.find(l => l.value === (e.energy != null ? e.energy : 0)); return lvl ? <span title={lvl.label}>{lvl.emoji}</span> : null; })()}
                   </div>
                   <div className="desc">{e.desc}</div>
                 </div>
@@ -1367,13 +1446,15 @@ function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
   }
 
   function exportCSV() {
-    const rows = [['SE', 'Client', 'Description', 'Est. Hours', 'Blocked By', 'Timestamp']];
+    const rows = [['SE', 'Client', 'Description', 'Est. Hours', 'Blocked By', 'Energy', 'Timestamp']];
     allEntries.forEach(e => {
+      const lvl = ENERGY_LEVELS.find(l => l.value === (e.energy != null ? e.energy : 0));
       rows.push([
         e.se, e.client,
         '"' + (e.desc || '').replace(/"/g, '""') + '"',
         e.hours,
         e.blocked,
+        lvl ? lvl.label : '',
         e.created ? new Date(e.created).toISOString() : ''
       ]);
     });
@@ -1467,6 +1548,7 @@ function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
                 <th onClick={() => toggleSort('desc')}>Description{sortArrow('desc')}</th>
                 <th onClick={() => toggleSort('hours')}>Est. Hours{sortArrow('hours')}</th>
                 <th onClick={() => toggleSort('blocked')}>Blocked By{sortArrow('blocked')}</th>
+                <th onClick={() => toggleSort('energy')}>Energy{sortArrow('energy')}</th>
                 {showActions && <th>Actions</th>}
               </tr>
             </thead>
@@ -1483,6 +1565,7 @@ function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
                   <td className="col-desc">{e.desc}</td>
                   <td className="col-hours">{e.hours}h</td>
                   <td><span className={"blocked-badge " + blockedClass(e.blocked)}>{e.blocked}</span></td>
+                  <td>{(() => { const lvl = ENERGY_LEVELS.find(l => l.value === (e.energy != null ? e.energy : 0)); return lvl ? <span className="energy-badge"><span className="energy-dot" style={{ background: lvl.color }} />{lvl.emoji}</span> : '—'; })()}</td>
                   {showActions && (
                     <td>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -1531,16 +1614,25 @@ function App() {
   const [view, setView] = useState('form'); // 'form' | 'consolidated'
   const [personaIndex, setPersonaIndex] = useState(0); // Cody-admin persona cycling
   const [localEntries, setLocalEntries] = useState({});
+  const [localViewAllUnlocked, setLocalViewAllUnlocked] = useState(false);
 
   const firebasePath = user ? `rooms/${ROOM_CODE}/entries` : null;
   const firebaseEntries = useFirebaseValue(firebasePath);
+  const firebaseViewAll = useFirebaseValue(`rooms/${ROOM_CODE}/viewAllUnlocked`);
 
   const entries = firebaseReady ? (firebaseEntries || {}) : localEntries;
+  const viewAllUnlocked = firebaseReady ? !!firebaseViewAll : localViewAllUnlocked;
 
-  // Spectators default to consolidated view
+  // Spectators: show consolidated when unlocked, otherwise nothing
+  // SEs: kick back to form if board gets locked while they're viewing it
   useEffect(() => {
-    if (user && user.role === 'spectator') setView('consolidated');
-  }, [user]);
+    if (!user) return;
+    if (user.role === 'spectator') {
+      setView(viewAllUnlocked ? 'consolidated' : 'waiting');
+    } else if (user.role === 'se' && view === 'consolidated' && !viewAllUnlocked) {
+      setView('form');
+    }
+  }, [user, viewAllUnlocked]);
 
   function handleLogin(resolvedUser) {
     setUser(resolvedUser);
@@ -1648,12 +1740,30 @@ function App() {
               {isNorman ? "Norman's Entries" : "My Entries"}
             </button>
           )}
-          <button
-            className={"btn-header " + (view === 'consolidated' ? 'active' : '')}
-            onClick={() => setView('consolidated')}
-          >
-            View All
-          </button>
+          {(isAdmin || viewAllUnlocked) && (
+            <button
+              className={"btn-header " + (view === 'consolidated' ? 'active' : '')}
+              onClick={() => setView('consolidated')}
+            >
+              View All
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              className={"btn-header " + (viewAllUnlocked ? 'active' : '')}
+              onClick={() => {
+                const next = !viewAllUnlocked;
+                if (firebaseReady) {
+                  setFirebaseValue(`rooms/${ROOM_CODE}/viewAllUnlocked`, next);
+                } else {
+                  setLocalViewAllUnlocked(next);
+                }
+              }}
+              style={viewAllUnlocked ? { background: 'var(--emerald-600)', borderColor: 'var(--emerald-600)', color: 'white' } : {}}
+            >
+              {viewAllUnlocked ? 'Board: Live' : 'Board: Hidden'}
+            </button>
+          )}
           {isAdmin && (
             <button className="btn-refresh" onClick={handleRefresh}>
               Refresh
@@ -1665,10 +1775,17 @@ function App() {
         </div>
       </div>
       <div className="app-body">
-        {user.role === 'spectator' && (
+        {user.role === 'spectator' && viewAllUnlocked && (
           <div className="spectator-welcome">
             <span className="icon">&#128065;</span>
             Welcome, {user.displayName}. You're viewing the live workload board.
+          </div>
+        )}
+        {view === 'waiting' && (
+          <div className="spectator-welcome" style={{ textAlign: 'center', padding: '80px 24px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>&#9203;</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--slate-600)' }}>Hang tight, {user.displayName}.</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--slate-400)', marginTop: 6 }}>The board will appear here once Cody opens it up.</div>
           </div>
         )}
         {view === 'form' && canAddEntries ? (
