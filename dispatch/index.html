@@ -1,21 +1,1717 @@
 <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispatch | Paintos Team</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0a0a0a; color: #fafafa; }
-        .container { text-align: center; padding: 2rem; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    p { color: #888; font-size: 1.1rem; }
-  </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Dispatch</h1>
-        <p>Paintos Team Portal — Coming Soon</p>
-  </div>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dispatch — Boolean Automations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --emerald-50: #ecfdf5;
+    --emerald-100: #d1fae5;
+    --emerald-200: #a7f3d0;
+    --emerald-300: #6ee7b7;
+    --emerald-400: #34d399;
+    --emerald-500: #10b981;
+    --emerald-600: #059669;
+    --emerald-700: #047857;
+    --emerald-800: #065f46;
+    --emerald-900: #064e3b;
+
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --slate-950: #020617;
+
+    --red-50: #fef2f2;
+    --red-100: #fee2e2;
+    --red-400: #f87171;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+
+    --amber-50: #fffbeb;
+    --amber-100: #fef3c7;
+    --amber-400: #fbbf24;
+    --amber-500: #f59e0b;
+
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-400: #60a5fa;
+    --blue-500: #3b82f6;
+
+    --purple-50: #faf5ff;
+    --purple-100: #f3e8ff;
+    --purple-400: #c084fc;
+    --purple-500: #a855f7;
+
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-display: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+  }
+
+  html { font-size: 15px; }
+  body {
+    font-family: var(--font-body);
+    background: var(--slate-50);
+    color: var(--slate-800);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ---- Login Screen — SNL-Primer style ---- */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #0B1120;
+    background-image:
+      radial-gradient(ellipse at 30% 20%, rgba(16,185,129,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(16,185,129,0.04) 0%, transparent 50%);
+    position: relative;
+  }
+  .login-content {
+    max-width: 480px;
+    width: 100%;
+    padding: 0 32px;
+    text-align: center;
+  }
+  .login-org-label {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(148,163,184,0.5);
+    margin-bottom: 16px;
+  }
+  .login-title {
+    font-family: var(--font-display);
+    font-size: 3.3rem;
+    font-weight: 600;
+    color: #E8EDF7;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .login-subtitle {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: rgba(148,163,184,0.4);
+    margin-bottom: 40px;
+  }
+  .login-helper {
+    font-size: 0.82rem;
+    color: rgba(148,163,184,0.45);
+    margin-bottom: 16px;
+  }
+  .login-input {
+    width: 100%;
+    padding: 20px 24px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    color: #E8EDF7;
+    font-family: var(--font-body);
+    font-size: 1.3rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .login-input::placeholder {
+    color: rgba(148,163,184,0.25);
+    font-size: 1.1rem;
+  }
+  .login-input:focus {
+    border-color: rgba(16,185,129,0.5);
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.12), 0 8px 40px rgba(0,0,0,0.3);
+  }
+  .login-enter-hint {
+    margin-top: 16px;
+    font-size: 0.78rem;
+    color: rgba(148,163,184,0.35);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+  .login-enter-hint.visible { opacity: 1; }
+
+  .login-welcome-sequence { text-align: center; margin-top: 32px; }
+  .login-welcome-msg {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--slate-300);
+    margin-bottom: 32px;
+    animation: fadeInUp 0.5s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .circle-loader-wrap {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 28px;
+  }
+  .circle-loader { width: 60px; height: 60px; transform: rotate(-90deg); }
+  .circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 3;
+  }
+  .circle-fill {
+    fill: none;
+    stroke: var(--emerald-500);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 163.36;
+    stroke-dashoffset: 163.36;
+    transition: none;
+  }
+  .circle-fill.filling {
+    animation: circleFill 2.5s ease forwards;
+  }
+  .circle-fill.done {
+    stroke-dashoffset: 0;
+  }
+  @keyframes circleFill {
+    to { stroke-dashoffset: 0; }
+  }
+  .circle-check {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--emerald-400);
+    font-size: 1.2rem;
+  }
+
+  .btn-start {
+    padding: 14px 48px;
+    background: var(--emerald-600);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+    animation: fadeInUp 0.4s ease;
+  }
+  .btn-start:hover { background: var(--emerald-700); transform: scale(1.02); }
+
+  .login-watermark {
+    position: absolute;
+    bottom: 28px;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(148,163,184,0.15);
+  }
+
+  /* Avatar styles */
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .avatar-sm { width: 24px; height: 24px; }
+  .avatar-lg { width: 48px; height: 48px; }
+  .avatar-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .avatar-initial.sm { width: 24px; height: 24px; font-size: 0.65rem; }
+  .avatar-initial.md { width: 32px; height: 32px; font-size: 0.75rem; }
+
+  /* ---- App Shell ---- */
+  .app-header {
+    background: var(--slate-900);
+    border-bottom: 1px solid var(--slate-700);
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .app-header h1 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--slate-100);
+  }
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-user-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--slate-300);
+  }
+  .role-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+  .role-badge.admin { background: rgba(16,185,129,0.15); color: var(--emerald-400); }
+  .role-badge.se { background: rgba(59,130,246,0.15); color: var(--blue-400); }
+  .role-badge.viewer { background: rgba(148,163,184,0.15); color: var(--slate-400); }
+  .role-badge.norman { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+  .header-user.clickable { cursor: pointer; border-radius: var(--radius-md); padding: 4px 8px; margin: -4px -8px; transition: background 0.15s; }
+  .header-user.clickable:hover { background: rgba(255,255,255,0.05); }
+  .persona-hint { font-size: 1rem; color: var(--slate-500); transition: color 0.15s; }
+  .header-user.clickable:hover .persona-hint { color: var(--slate-300); }
+
+  .connection-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--slate-400);
+    margin-left: 4px;
+  }
+  .connection-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .connection-dot.online { background: var(--emerald-400); box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+  .connection-dot.offline { background: var(--amber-400); }
+
+  .app-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-header {
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--slate-600);
+    background: var(--slate-800);
+    color: var(--slate-300);
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-header:hover { background: var(--slate-700); color: var(--slate-100); }
+  .btn-header.active {
+    background: var(--emerald-600);
+    border-color: var(--emerald-600);
+    color: white;
+  }
+  .btn-refresh {
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--red-400);
+    background: transparent;
+    color: var(--red-400);
+    transition: all 0.15s;
+  }
+  .btn-refresh:hover { background: var(--red-500); color: white; border-color: var(--red-500); }
+
+  .app-body { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+  /* Spectator welcome */
+  .spectator-welcome {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: var(--slate-500);
+  }
+  .spectator-welcome .icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  /* ---- Entry Form ---- */
+  .entry-form {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .entry-form h2 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--slate-900);
+    margin-bottom: 18px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--slate-500);
+    margin-bottom: 4px;
+    letter-spacing: 0.01em;
+  }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--slate-800);
+    background: var(--slate-50);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+    border-color: var(--emerald-500);
+    background: white;
+  }
+  .form-field textarea { resize: vertical; min-height: 64px; }
+  .form-field .helper {
+    font-size: 0.72rem;
+    color: var(--slate-400);
+    margin-top: 3px;
+  }
+  .form-field input[type=number] { font-family: var(--font-mono); font-size: 0.88rem; }
+  .form-field input[readonly] {
+    background: var(--slate-100);
+    color: var(--slate-500);
+    cursor: default;
+  }
+  .btn-add {
+    padding: 9px 22px;
+    background: var(--emerald-600);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-add:hover { background: var(--emerald-700); }
+
+  /* searchable dropdown */
+  .searchable-dropdown { position: relative; }
+  .searchable-dropdown input { cursor: text; }
+  .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .dropdown-list div {
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .dropdown-list div:hover, .dropdown-list div.highlighted {
+    background: var(--emerald-50);
+    color: var(--emerald-800);
+  }
+
+  /* ---- My Entries ---- */
+  .my-entries h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+  }
+  .entry-card {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .entry-card-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .entry-card-body { flex: 1; min-width: 0; }
+  .entry-card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 3px;
+  }
+  .entry-card .client-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--slate-800);
+  }
+  .entry-card .hours {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--emerald-600);
+  }
+  .entry-card .desc {
+    font-size: 0.82rem;
+    color: var(--slate-500);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .entry-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.73rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--slate-200);
+    background: white;
+    color: var(--slate-500);
+    transition: all 0.15s;
+  }
+  .btn-sm:hover { border-color: var(--slate-300); color: var(--slate-700); }
+  .btn-sm.danger:hover { border-color: var(--red-400); color: var(--red-500); background: var(--red-50); }
+
+  /* ---- Blocked badges ---- */
+  .blocked-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.01em;
+  }
+  .blocked-badge.waiting-on-client { background: var(--amber-100); color: #92400e; }
+  .blocked-badge.knowledge-gap { background: var(--blue-100); color: #1e40af; }
+  .blocked-badge.no-time { background: var(--purple-100); color: #6b21a8; }
+  .blocked-badge.dev-system { background: var(--red-100); color: var(--red-600); }
+  .blocked-badge.not-blocked { background: var(--emerald-100); color: var(--emerald-800); }
+
+  /* ---- Consolidated View ---- */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+  }
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .stat-card .stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--slate-900);
+  }
+  .stat-card .stat-suffix {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--slate-400);
+  }
+
+  .workload-chart {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .workload-chart h3 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .bar-label {
+    width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--slate-600);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--slate-100);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--emerald-500);
+    border-radius: var(--radius-sm);
+    transition: width 0.4s ease;
+    min-width: 1px;
+  }
+  .bar-value {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--slate-500);
+    width: 42px;
+    flex-shrink: 0;
+  }
+
+  .blocked-summary {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .blocked-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--slate-600);
+  }
+  .blocked-summary-item .count {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  /* Filters */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-row select {
+    padding: 6px 10px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--slate-600);
+    background: white;
+    outline: none;
+    cursor: pointer;
+  }
+  .filter-row select:focus { border-color: var(--emerald-500); }
+  .filter-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* Data table */
+  .data-table-wrapper {
+    background: white;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--slate-200);
+    background: var(--slate-50);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .data-table th:hover { color: var(--slate-600); }
+  .data-table th .sort-arrow { margin-left: 4px; font-size: 0.65rem; }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--slate-100);
+    font-size: 0.85rem;
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--slate-50); }
+  .data-table .col-hours {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--emerald-600);
+  }
+  .data-table .col-desc {
+    max-width: 320px;
+    line-height: 1.4;
+    color: var(--slate-600);
+  }
+  .data-table .col-se { font-weight: 500; width: 130px; min-width: 130px; }
+  .se-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .se-cell .avatar, .se-cell .avatar-initial { flex-shrink: 0; }
+
+  .reassign-select {
+    padding: 4px 6px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--slate-500);
+    background: white;
+    cursor: pointer;
+    outline: none;
+  }
+  .reassign-select:focus { border-color: var(--emerald-500); }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--slate-400);
+    font-size: 0.9rem;
+  }
+
+  .btn-export {
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--emerald-600);
+    background: var(--emerald-600);
+    color: white;
+    transition: background 0.15s;
+  }
+  .btn-export:hover { background: var(--emerald-700); }
+
+  /* Edit modal overlay */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 440px;
+    max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  .modal-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--slate-800);
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .btn-cancel {
+    padding: 8px 16px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--slate-500);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .btn-cancel:hover { background: var(--slate-50); }
+  .btn-save {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--emerald-600);
+    color: white;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-save:hover { background: var(--emerald-700); }
+
+  /* New entry animation */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .data-table tbody tr {
+    animation: fadeSlideIn 0.3s ease;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+// ---- Firebase Setup ----
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let db = null;
+let firebaseReady = false;
+
+try {
+  if (FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    firebaseReady = true;
+  } else {
+    console.warn('Firebase not configured, using local-only mode');
+  }
+} catch(e) {
+  console.warn('Firebase init failed, using local-only mode:', e);
+}
+
+// ---- Firebase Helpers ----
+function setFirebaseValue(path, value) {
+  if (firebaseReady && db) return db.ref(path).set(value);
+  return Promise.resolve();
+}
+
+function removeFirebaseValue(path) {
+  if (firebaseReady && db) return db.ref(path).remove();
+  return Promise.resolve();
+}
+
+function useFirebaseValue(path) {
+  const [value, setValue] = useState(null);
+  useEffect(() => {
+    if (!firebaseReady || !db || !path) return;
+    const ref = db.ref(path);
+    const handler = ref.on('value', snap => setValue(snap.val()));
+    return () => ref.off('value', handler);
+  }, [path]);
+  return value;
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// ---- Constants ----
+const ROOM_CODE = 'BOOL';
+
+const AVATARS = {
+  'Marcel': 'https://avatars.slack-edge.com/2024-09-05/7663456659687_957e27c02a989bb24d8d_original.jpg',
+  'Dan': 'https://avatars.slack-edge.com/2025-07-23/9240953140901_c15e60ca8a3c81134d90_original.jpg',
+  'Rensy': 'https://avatars.slack-edge.com/2025-02-26/8502732118598_6350ec2d95b87d697376_original.png',
+  'Riz': 'https://avatars.slack-edge.com/2024-12-02/8103899013910_bcc2fce4c53902d0016e_original.jpg',
+  'Celine': 'https://avatars.slack-edge.com/2026-03-04/10625870849636_a403a43134acdee899bc_original.png',
+  'Veronica': 'https://avatars.slack-edge.com/2025-10-15/9710945839905_e912cd55a9cb9c452d45_original.png',
+  'Cody': 'https://avatars.slack-edge.com/2025-12-09/10084272582818_5f8b89014e9cc466e4e8_original.jpg',
+  'Chris': 'https://avatars.slack-edge.com/2023-01-24/4679311450679_ef8be8eceeb89d39711e_original.png',
+  'Justin': 'https://avatars.slack-edge.com/2025-10-13/9700384800161_ce426d24c266e93f05a9_original.jpg',
+  'Eveguel': 'https://avatars.slack-edge.com/2025-01-30/8374846470036_5659e4deefeee042cf6e_original.jpg',
+  'Rod': 'https://avatars.slack-edge.com/2025-06-18/9065427757653_3b1092c6f59c4566b0e6_original.jpg',
+  'Norman': 'https://avatars.slack-edge.com/2026-02-26/10584106690661_6991061e031e6303da21_original.png',
+};
+
+const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Veronica', 'Justin', 'Eveguel', 'Rod'];
+const ALL_NAMES = ['Cody', ...SE_NAMES];
+// Personas Cody can cycle through (admin only)
+const CODY_PERSONAS = ['Cody', 'Norman'];
+
+const CLIENTS = [
+  'Boolean (Internal)', '519 Painters', 'A&A Painting', 'ACP Painting', 'All American Painting Plus',
+  'AllBright Pro Painting', 'Blair Commercial Painting', 'C and A Painting',
+  'Connor Painting', 'Dennis Moffit Painting', 'Emerson Paints', 'Funky Painting',
+  'GoPainting', 'Heiler Painting', 'Highfill Painting', 'Integrity Painting',
+  'Kennedy Painting', 'McLains Painting', 'Mikes Quality Painting', 'Paint Denver',
+  'Paragon Painting', 'Pro Rise Painting', 'Roll Call Painting', 'SNL Painting',
+  'Select Painting & Coatings', 'Service Built', 'Steve Holloway Painting'
+];
+const BLOCKED_OPTIONS = ['Waiting on client', 'Knowledge gap', 'No time', 'Dev/system dependency', 'Not blocked'];
+const SE_COLORS = {
+  Marcel: '#10b981', Dan: '#3b82f6', Rensy: '#f59e0b', Riz: '#ef4444',
+  Celine: '#a855f7', Veronica: '#06b6d4', Cody: '#64748b',
+  Justin: '#ec4899', Eveguel: '#f97316', Rod: '#14b8a6',
+  Norman: '#f97316'
+};
+
+// ---- Name Resolution ----
+function resolveUser(input) {
+  const trimmed = (input || '').trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+
+  // Admin check: "CodyH" or "ChrisK" (no spaces, case-insensitive)
+  if (lower === 'codyh') {
+    return { name: 'Cody', role: 'admin', displayName: 'Cody H' };
+  }
+  if (lower === 'chrisk') {
+    return { name: 'Chris', role: 'admin', displayName: 'Chris K' };
+  }
+
+  // SE check: match known first names (case-insensitive)
+  const seMatch = SE_NAMES.find(n => n.toLowerCase() === lower);
+  if (seMatch) {
+    return { name: seMatch, role: 'se', displayName: seMatch };
+  }
+
+  // Spectator
+  return { name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1), role: 'spectator', displayName: trimmed };
+}
+
+function blockedClass(b) {
+  if (b === 'Waiting on client') return 'waiting-on-client';
+  if (b === 'Knowledge gap') return 'knowledge-gap';
+  if (b === 'No time') return 'no-time';
+  if (b === 'Dev/system dependency') return 'dev-system';
+  return 'not-blocked';
+}
+
+// ---- Avatar Component ----
+function Avatar({ name, size = 'md', className = '' }) {
+  const url = AVATARS[name];
+  const sizeClass = size === 'sm' ? 'avatar-sm' : '';
+  const px = size === 'sm' ? 24 : 32;
+
+  if (url) {
+    return <img src={url} alt={name} className={`avatar ${sizeClass} ${className}`} style={{ width: px, height: px }} />;
+  }
+
+  // Fallback: colored initial circle
+  const color = SE_COLORS[name] || '#64748b';
+  return (
+    <span
+      className={`avatar-initial ${size} ${className}`}
+      style={{ background: color, width: px, height: px, fontSize: size === 'sm' ? '0.65rem' : '0.75rem' }}
+    >
+      {(name || '?')[0].toUpperCase()}
+    </span>
+  );
+}
+
+// ---- Searchable Client Dropdown ----
+function ClientDropdown({ value, onChange }) {
+  const [search, setSearch] = useState(value || '');
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+
+  const filtered = useMemo(() => {
+    if (!search) return CLIENTS;
+    const lower = search.toLowerCase();
+    return CLIENTS.filter(c => c.toLowerCase().includes(lower));
+  }, [search]);
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => { setSearch(value || ''); }, [value]);
+
+  return (
+    <div className="searchable-dropdown" ref={ref}>
+      <input
+        value={search}
+        onChange={e => { setSearch(e.target.value); onChange(''); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Search clients..."
+      />
+      {open && filtered.length > 0 && (
+        <div className="dropdown-list">
+          {filtered.map(c => (
+            <div key={c} onClick={() => { onChange(c); setSearch(c); setOpen(false); }}>
+              {c}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Login Screen ----
+function LoginScreen({ onLogin }) {
+  const [input, setInput] = useState('');
+  const [resolved, setResolved] = useState(null);
+  const [filling, setFilling] = useState(false);
+  const [filled, setFilled] = useState(false);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const user = resolveUser(input);
+    if (user) {
+      setResolved(user);
+      setFilling(true);
+      setTimeout(() => {
+        setFilling(false);
+        setFilled(true);
+      }, 2500);
+    }
+  }
+
+  function handleStart() {
+    if (resolved) onLogin(resolved);
+  }
+
+  // Welcome message by role
+  const welcomeMsg = resolved
+    ? resolved.role === 'admin' ? `Welcome back, ${resolved.name}.`
+    : resolved.role === 'se' ? `Hey ${resolved.name}, let's get your work logged.`
+    : `Welcome, ${resolved.displayName}. You'll be viewing the live board.`
+    : '';
+
+  return (
+    <div className="login-screen">
+      <div className="login-content">
+        <div className="login-org-label">Boolean Automations</div>
+        <h1 className="login-title">Dispatch</h1>
+        <p className="login-subtitle">Team workload review</p>
+
+        {!resolved ? (
+          <>
+            <p className="login-helper">Type your first name to get started</p>
+            <form onSubmit={handleSubmit}>
+              <input
+                className="login-input"
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Your name"
+                autoFocus
+              />
+            </form>
+            <div className={"login-enter-hint " + (input.length > 0 ? 'visible' : '')}>
+              Press Enter &#8629;
+            </div>
+          </>
+        ) : (
+          <div className="login-welcome-sequence">
+            <p className="login-welcome-msg">{welcomeMsg}</p>
+            <div className="circle-loader-wrap">
+              <svg className="circle-loader" viewBox="0 0 60 60">
+                <circle className="circle-bg" cx="30" cy="30" r="26" />
+                <circle
+                  className={"circle-fill" + (filling ? ' filling' : '') + (filled ? ' done' : '')}
+                  cx="30" cy="30" r="26"
+                />
+              </svg>
+              {!filled && !filling && (
+                <div className="circle-check">&#10003;</div>
+              )}
+            </div>
+            {filled && (
+              <button className="btn-start" onClick={handleStart}>Start</button>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="login-watermark">Boolean Automations</div>
+    </div>
+  );
+}
+
+// ---- Edit Modal ----
+function EditModal({ entry, onSave, onClose }) {
+  const [client, setClient] = useState(entry.client);
+  const [desc, setDesc] = useState(entry.desc);
+  const [hours, setHours] = useState(entry.hours);
+  const [blocked, setBlocked] = useState(entry.blocked);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <h3>Edit Entry</h3>
+        <div className="form-field" style={{ marginBottom: 12 }}>
+          <label>Client</label>
+          <ClientDropdown value={client} onChange={setClient} />
+        </div>
+        <div className="form-field" style={{ marginBottom: 12 }}>
+          <label>Task / Issue</label>
+          <textarea value={desc} onChange={e => setDesc(e.target.value)} />
+        </div>
+        <div className="form-field" style={{ marginBottom: 12 }}>
+          <label>Est. Hours</label>
+          <input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
+        </div>
+        <div className="form-field" style={{ marginBottom: 0 }}>
+          <label>Blocked By</label>
+          <select value={blocked} onChange={e => setBlocked(e.target.value)}>
+            {BLOCKED_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="btn-save" onClick={() => {
+            if (client && desc && hours) onSave({ ...entry, client, desc, hours: parseFloat(hours), blocked });
+          }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Entry Form View ----
+function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
+  const [client, setClient] = useState('');
+  const [desc, setDesc] = useState('');
+  const [hours, setHours] = useState('');
+  const [blocked, setBlocked] = useState('Not blocked');
+  const [editing, setEditing] = useState(null);
+
+  const myEntries = useMemo(() => {
+    if (!entries) return [];
+    return Object.entries(entries)
+      .filter(([, e]) => e.se === user.name)
+      .sort((a, b) => (b[1].created || 0) - (a[1].created || 0));
+  }, [entries, user.name]);
+
+  function handleAdd() {
+    if (!client || !desc || !hours) return;
+    onAdd({ client, desc, hours: parseFloat(hours), blocked, se: user.name, created: Date.now() });
+    setClient(''); setDesc(''); setHours(''); setBlocked('Not blocked');
+  }
+
+  return (
+    <div>
+      <div className="entry-form">
+        <h2>Add Open Work</h2>
+        <p style={{ fontSize: '0.78rem', color: 'var(--slate-400)', marginBottom: 16, lineHeight: 1.5 }}>
+          Log everything on your plate — client work <em>and</em> internal. Use <strong>Boolean (Internal)</strong> for non-client tasks.
+        </p>
+        <div className="form-grid">
+          <div className="form-field">
+            <label>Your Name</label>
+            <input type="text" value={user.name} readOnly />
+          </div>
+          <div className="form-field">
+            <label>Estimated Hours</label>
+            <input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} placeholder="0" />
+            <div className="helper">Be conservative. If you think it's 1 hour, put 2. If you think it's 4, put 8.</div>
+          </div>
+          <div className="form-field">
+            <label>Client Name</label>
+            <ClientDropdown value={client} onChange={setClient} />
+          </div>
+          <div className="form-field">
+            <label>Blocked By</label>
+            <select value={blocked} onChange={e => setBlocked(e.target.value)}>
+              {BLOCKED_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+          <div className="form-field full">
+            <label>Task / Issue Description</label>
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What needs to be done?" />
+          </div>
+        </div>
+        <button className="btn-add" onClick={handleAdd}>Add Entry</button>
+      </div>
+
+      {myEntries.length > 0 && (
+        <div className="my-entries">
+          <h3>Your Entries ({myEntries.length})</h3>
+          {myEntries.map(([id, e]) => (
+            <div className="entry-card" key={id}>
+              <div className="entry-card-left">
+                <Avatar name={user.name} size="sm" />
+                <div className="entry-card-body">
+                  <div className="entry-card-top">
+                    <span className="client-name">{e.client}</span>
+                    <span className="hours">{e.hours}h</span>
+                    <span className={"blocked-badge " + blockedClass(e.blocked)}>{e.blocked}</span>
+                  </div>
+                  <div className="desc">{e.desc}</div>
+                </div>
+              </div>
+              <div className="entry-card-actions">
+                <button className="btn-sm" onClick={() => setEditing({ id, ...e })}>Edit</button>
+                <button className="btn-sm danger" onClick={() => onDelete(id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {editing && (
+        <EditModal
+          entry={editing}
+          onClose={() => setEditing(null)}
+          onSave={updated => {
+            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, se: updated.se, created: updated.created });
+            setEditing(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---- Consolidated View ----
+function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
+  const [sortKey, setSortKey] = useState('se');
+  const [sortDir, setSortDir] = useState('asc');
+  const [filterSE, setFilterSE] = useState('');
+  const [filterClient, setFilterClient] = useState('');
+  const [filterBlocked, setFilterBlocked] = useState('');
+  const [editing, setEditing] = useState(null);
+
+  const isAdmin = user.role === 'admin';
+  const isSE = user.role === 'se';
+
+  const allEntries = useMemo(() => {
+    if (!entries) return [];
+    return Object.entries(entries).map(([id, e]) => ({ id, ...e }));
+  }, [entries]);
+
+  const filtered = useMemo(() => {
+    let arr = [...allEntries];
+    if (filterSE) arr = arr.filter(e => e.se === filterSE);
+    if (filterClient) arr = arr.filter(e => e.client === filterClient);
+    if (filterBlocked) arr = arr.filter(e => e.blocked === filterBlocked);
+    arr.sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      if (sortKey === 'hours') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+      else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [allEntries, filterSE, filterClient, filterBlocked, sortKey, sortDir]);
+
+  const totalHours = useMemo(() => allEntries.reduce((s, e) => s + (parseFloat(e.hours) || 0), 0), [allEntries]);
+
+  const hoursBySE = useMemo(() => {
+    const map = {};
+    ALL_NAMES.forEach(n => { map[n] = 0; });
+    allEntries.forEach(e => { map[e.se] = (map[e.se] || 0) + (parseFloat(e.hours) || 0); });
+    return Object.entries(map).filter(([, h]) => h > 0).sort((a, b) => b[1] - a[1]);
+  }, [allEntries]);
+
+  const maxHours = useMemo(() => Math.max(...hoursBySE.map(([, h]) => h), 1), [hoursBySE]);
+
+  const blockedCounts = useMemo(() => {
+    const map = {};
+    BLOCKED_OPTIONS.forEach(b => { map[b] = 0; });
+    allEntries.forEach(e => { map[e.blocked] = (map[e.blocked] || 0) + 1; });
+    return map;
+  }, [allEntries]);
+
+  const uniqueClients = useMemo(() => [...new Set(allEntries.map(e => e.client))].sort(), [allEntries]);
+  const uniqueSEs = useMemo(() => [...new Set(allEntries.map(e => e.se))].sort(), [allEntries]);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
+
+  function sortArrow(key) {
+    if (sortKey !== key) return '';
+    return sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
+  }
+
+  function canEditEntry(entry) {
+    if (isAdmin) return true;
+    if (isSE && entry.se === user.name) return true;
+    return false;
+  }
+
+  function exportCSV() {
+    const rows = [['SE', 'Client', 'Description', 'Est. Hours', 'Blocked By', 'Timestamp']];
+    allEntries.forEach(e => {
+      rows.push([
+        e.se, e.client,
+        '"' + (e.desc || '').replace(/"/g, '""') + '"',
+        e.hours,
+        e.blocked,
+        e.created ? new Date(e.created).toISOString() : ''
+      ]);
+    });
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dispatch-export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const showActions = isAdmin || isSE;
+
+  return (
+    <div>
+      <div className="summary-bar">
+        <div className="stat-card">
+          <div className="stat-label">Total Entries</div>
+          <div className="stat-value">{allEntries.length}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Total Hours</div>
+          <div className="stat-value">{totalHours}<span className="stat-suffix"> hrs</span></div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">SEs Reporting</div>
+          <div className="stat-value">{uniqueSEs.length}</div>
+        </div>
+      </div>
+
+      {hoursBySE.length > 0 && (
+        <div className="workload-chart">
+          <h3>Hours by SE</h3>
+          {hoursBySE.map(([name, hours]) => (
+            <div className="bar-row" key={name}>
+              <div className="bar-label">
+                <Avatar name={name} size="sm" />
+                {name}
+              </div>
+              <div className="bar-track">
+                <div className="bar-fill" style={{
+                  width: (hours / maxHours * 100) + '%',
+                  background: SE_COLORS[name] || 'var(--emerald-500)'
+                }} />
+              </div>
+              <div className="bar-value">{hours}h</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="blocked-summary">
+        {BLOCKED_OPTIONS.map(b => (
+          <div className="blocked-summary-item" key={b}>
+            <span className={"blocked-badge " + blockedClass(b)}>{b}</span>
+            <span className="count">{blockedCounts[b] || 0}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="filter-row" style={{ marginBottom: 0 }}>
+          <span className="filter-label">Filter:</span>
+          <select value={filterSE} onChange={e => setFilterSE(e.target.value)}>
+            <option value="">All SEs</option>
+            {ALL_NAMES.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <select value={filterClient} onChange={e => setFilterClient(e.target.value)}>
+            <option value="">All Clients</option>
+            {uniqueClients.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={filterBlocked} onChange={e => setFilterBlocked(e.target.value)}>
+            <option value="">All Statuses</option>
+            {BLOCKED_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+        <button className="btn-export" onClick={exportCSV}>Export CSV</button>
+      </div>
+
+      <div className="data-table-wrapper">
+        {filtered.length === 0 ? (
+          <div className="empty-state">No entries yet. Waiting for team members to submit their open work.</div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th onClick={() => toggleSort('se')}>SE{sortArrow('se')}</th>
+                <th onClick={() => toggleSort('client')}>Client{sortArrow('client')}</th>
+                <th onClick={() => toggleSort('desc')}>Description{sortArrow('desc')}</th>
+                <th onClick={() => toggleSort('hours')}>Est. Hours{sortArrow('hours')}</th>
+                <th onClick={() => toggleSort('blocked')}>Blocked By{sortArrow('blocked')}</th>
+                {showActions && <th>Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(e => (
+                <tr key={e.id}>
+                  <td className="col-se">
+                    <div className="se-cell">
+                      <Avatar name={e.se} size="sm" />
+                      {e.se}
+                    </div>
+                  </td>
+                  <td>{e.client}</td>
+                  <td className="col-desc">{e.desc}</td>
+                  <td className="col-hours">{e.hours}h</td>
+                  <td><span className={"blocked-badge " + blockedClass(e.blocked)}>{e.blocked}</span></td>
+                  {showActions && (
+                    <td>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        {isAdmin && (
+                          <select
+                            className="reassign-select"
+                            value={e.se}
+                            onChange={ev => onReassign(e.id, ev.target.value)}
+                          >
+                            {ALL_NAMES.map(n => <option key={n} value={n}>{n}</option>)}
+                          </select>
+                        )}
+                        {canEditEntry(e) && (
+                          <>
+                            <button className="btn-sm" onClick={() => setEditing({ id: e.id, ...e })}>Edit</button>
+                            <button className="btn-sm danger" onClick={() => onDelete(e.id)}>Delete</button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {editing && (
+        <EditModal
+          entry={editing}
+          onClose={() => setEditing(null)}
+          onSave={updated => {
+            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, se: updated.se || editing.se, created: updated.created || editing.created });
+            setEditing(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---- Main App ----
+function App() {
+  const [user, setUser] = useState(null); // { name, role, displayName }
+  const [view, setView] = useState('form'); // 'form' | 'consolidated'
+  const [personaIndex, setPersonaIndex] = useState(0); // Cody-admin persona cycling
+  const [localEntries, setLocalEntries] = useState({
+    // Seed data based on Clockify time tracking
+    // Marcel — Blair is his world
+    s1: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'HubSpot deal pipeline automation broken — deals stuck in Bid Scheduled, not moving to Won stage after PaintScout acceptance', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 100000 },
+    s2: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'Weekly reporting dashboard — client wants a consolidated view of all open estimates vs closed jobs', hours: 6, blocked: 'No time', created: Date.now() - 90000 },
+    s3: { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'CompanyCam integration throwing errors on new project creation — photos not syncing to correct deals', hours: 4, blocked: 'Dev/system dependency', created: Date.now() - 80000 },
+
+    // Dan — spread across multiple clients, busiest SE
+    s4: { se: 'Dan', client: 'Pro Rise Painting', desc: 'Full CRM onboarding — building pipeline stages, custom properties, and automation workflows from scratch', hours: 16, blocked: 'Not blocked', created: Date.now() - 70000 },
+    s5: { se: 'Dan', client: 'Roll Call Painting', desc: 'QuickBooks integration setup — mapping invoice line items to HubSpot deal properties', hours: 10, blocked: 'Waiting on client', created: Date.now() - 60000 },
+    s6: { se: 'Dan', client: 'Paragon Painting', desc: 'PaintScout estimate templates need rebuilding after client changed their pricing structure', hours: 8, blocked: 'Not blocked', created: Date.now() - 50000 },
+    s7: { se: 'Dan', client: 'Heiler Painting', desc: 'Lead routing automation — new leads from website form not assigning to correct sales rep', hours: 4, blocked: 'Knowledge gap', created: Date.now() - 45000 },
+    s8: { se: 'Dan', client: 'Pro Rise Painting', desc: 'YCBM booking page configuration — calendar sync issues with Google Workspace', hours: 6, blocked: 'Waiting on client', created: Date.now() - 40000 },
+
+    // Rensy — Go Painting and Kennedy heavy
+    s9: { se: 'Rensy', client: 'GoPainting', desc: 'Airtable job tracker rebuild — current base is maxed out, need to restructure for scale', hours: 12, blocked: 'No time', created: Date.now() - 35000 },
+    s10: { se: 'Rensy', client: 'Kennedy Painting', desc: 'Automated follow-up sequence not firing after estimate sent — workflow trigger misconfigured', hours: 6, blocked: 'Dev/system dependency', created: Date.now() - 30000 },
+    s11: { se: 'Rensy', client: 'Kennedy Painting', desc: 'Client onboarding new estimator — need to set up YCBM page, HubSpot user, CompanyCam access', hours: 4, blocked: 'Waiting on client', created: Date.now() - 25000 },
+    s12: { se: 'Rensy', client: 'AllBright Pro Painting', desc: 'Monthly reporting automation — pulling data from HubSpot + QBO into a single client-facing report', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 20000 },
+
+    // Riz — ACP, SNL, Paint Denver
+    s13: { se: 'Riz', client: 'ACP Painting', desc: 'Deal stage automation overhaul — too many manual steps between Bid Sent and Job Won', hours: 10, blocked: 'Not blocked', created: Date.now() - 18000 },
+    s14: { se: 'Riz', client: 'SNL Painting', desc: 'Post-training cleanup — fixing workflows that were demo\'d during Primer session but never finalized', hours: 6, blocked: 'No time', created: Date.now() - 16000 },
+    s15: { se: 'Riz', client: 'Paint Denver', desc: 'Website form → HubSpot pipeline — contact creation failing on duplicate emails', hours: 4, blocked: 'Dev/system dependency', created: Date.now() - 14000 },
+    s16: { se: 'Riz', client: 'C and A Painting', desc: 'Initial discovery + scoping — new automation client, need to map their current process', hours: 3, blocked: 'Waiting on client', created: Date.now() - 12000 },
+
+    // Celine — 519, Highfill, Connor, Funky, All American
+    s17: { se: 'Celine', client: '519 Painters', desc: 'Invoice automation — QBO Sales Receipts not matching HubSpot deal amounts after partial payments', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 11000 },
+    s18: { se: 'Celine', client: 'Highfill Painting', desc: 'CompanyCam → HubSpot photo sync — client wants job photos automatically attached to deal records', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 10000 },
+    s19: { se: 'Celine', client: 'Connor Painting', desc: 'Re-engagement campaign setup — automated emails to lost deals from last 6 months', hours: 5, blocked: 'Not blocked', created: Date.now() - 9000 },
+    s20: { se: 'Celine', client: 'Funky Painting', desc: 'PaintScout template issues — line items not calculating tax correctly for commercial jobs', hours: 4, blocked: 'Waiting on client', created: Date.now() - 8000 },
+    s21: { se: 'Celine', client: 'All American Painting Plus', desc: 'Workflow audit — client reports getting double emails on deal stage changes', hours: 4, blocked: 'Not blocked', created: Date.now() - 7000 },
+
+    // Veronica — lighter load, EA work
+    s22: { se: 'Veronica', client: 'Integrity Painting', desc: 'Monthly billing reconciliation — subscription amounts in QBO don\'t match contract terms', hours: 3, blocked: 'Waiting on client', created: Date.now() - 6000 },
+    s23: { se: 'Veronica', client: 'McLains Painting', desc: 'Client communication backlog — 4 unanswered support threads from last week', hours: 2, blocked: 'No time', created: Date.now() - 5000 },
+    s24: { se: 'Norman', client: 'Boolean (Internal)', desc: "Stare at Cody's poor attempt to build a meeting tool and say nothing because I'm @mention only", hours: 40, blocked: 'Not blocked', created: Date.now() - 4000 },
+  });
+
+  const firebasePath = user ? `rooms/${ROOM_CODE}/entries` : null;
+  const firebaseEntries = useFirebaseValue(firebasePath);
+
+  const entries = firebaseReady ? (firebaseEntries || {}) : localEntries;
+
+  // Spectators default to consolidated view
+  useEffect(() => {
+    if (user && user.role === 'spectator') setView('consolidated');
+  }, [user]);
+
+  function handleLogin(resolvedUser) {
+    setUser(resolvedUser);
+  }
+
+  function handleAdd(entry) {
+    const id = generateId();
+    if (firebaseReady) {
+      setFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`, entry);
+    } else {
+      setLocalEntries(prev => ({ ...prev, [id]: entry }));
+    }
+  }
+
+  function handleEdit(id, entry) {
+    if (firebaseReady) {
+      setFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`, entry);
+    } else {
+      setLocalEntries(prev => ({ ...prev, [id]: entry }));
+    }
+  }
+
+  function handleDelete(id) {
+    if (firebaseReady) {
+      removeFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`);
+    } else {
+      setLocalEntries(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
+  }
+
+  function handleReassign(id, newSE) {
+    const entry = entries[id];
+    if (!entry) return;
+    const updated = { ...entry, se: newSE };
+    if (firebaseReady) {
+      setFirebaseValue(`rooms/${ROOM_CODE}/entries/${id}`, updated);
+    } else {
+      setLocalEntries(prev => ({ ...prev, [id]: updated }));
+    }
+  }
+
+  function handleRefresh() {
+    if (!window.confirm('Clear all entries and start fresh? This cannot be undone.')) return;
+    if (firebaseReady) {
+      removeFirebaseValue(`rooms/${ROOM_CODE}/entries`);
+    } else {
+      setLocalEntries({});
+    }
+  }
+
+  if (!user) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  const isAdmin = user.role === 'admin';
+  const isCodyAdmin = isAdmin && user.name === 'Cody';
+  const isSE = user.role === 'se';
+  const canAddEntries = isAdmin || isSE;
+
+  // Persona: Cody can cycle between herself and Norman
+  const activePersona = isCodyAdmin ? CODY_PERSONAS[personaIndex % CODY_PERSONAS.length] : user.name;
+  const isNorman = activePersona === 'Norman';
+  const displayName = isNorman ? 'Norman' : user.name;
+
+  const roleBadgeClass = isAdmin ? 'admin' : (isSE ? 'se' : 'viewer');
+  const roleBadgeLabel = isNorman ? 'Norman' : (isAdmin ? 'Admin' : (isSE ? 'SE' : 'Viewer'));
+
+  function cyclePersona() {
+    if (isCodyAdmin) {
+      setPersonaIndex(i => i + 1);
+      setView('form');
+    }
+  }
+
+  return (
+    <div>
+      <div className="app-header">
+        <div className="app-header-left">
+          <h1>Dispatch</h1>
+          <div
+            className={"header-user" + (isCodyAdmin ? " clickable" : "")}
+            onClick={cyclePersona}
+            title={isCodyAdmin ? "Click to switch persona" : undefined}
+          >
+            <Avatar name={activePersona} size="sm" />
+            <span className="header-user-name">{displayName}</span>
+            <span className={`role-badge ${isNorman ? 'norman' : roleBadgeClass}`}>{roleBadgeLabel}</span>
+            {isCodyAdmin && <span className="persona-hint">&#8635;</span>}
+            <span className="connection-indicator">
+              <span className={`connection-dot ${firebaseReady ? 'online' : 'offline'}`} />
+              {firebaseReady ? 'Live' : 'Local Mode'}
+            </span>
+          </div>
+        </div>
+        <div className="app-header-right">
+          {canAddEntries && (
+            <button
+              className={"btn-header " + (view === 'form' ? 'active' : '')}
+              onClick={() => setView('form')}
+            >
+              {isNorman ? "Norman's Entries" : "My Entries"}
+            </button>
+          )}
+          <button
+            className={"btn-header " + (view === 'consolidated' ? 'active' : '')}
+            onClick={() => setView('consolidated')}
+          >
+            View All
+          </button>
+          {isAdmin && (
+            <button className="btn-refresh" onClick={handleRefresh}>
+              Refresh
+            </button>
+          )}
+          <button className="btn-header" onClick={() => setUser(null)} style={{ color: 'var(--slate-500)', borderColor: 'var(--slate-700)' }}>
+            Leave
+          </button>
+        </div>
+      </div>
+      <div className="app-body">
+        {user.role === 'spectator' && (
+          <div className="spectator-welcome">
+            <span className="icon">&#128065;</span>
+            Welcome, {user.displayName}. You're viewing the live workload board.
+          </div>
+        )}
+        {view === 'form' && canAddEntries ? (
+          <EntryFormView
+            user={{...user, name: activePersona}}
+            entries={entries}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ) : (
+          <ConsolidatedView
+            entries={entries}
+            user={user}
+            onReassign={handleReassign}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
