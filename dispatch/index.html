@@ -10,6 +10,7 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -226,6 +227,52 @@
     animation: fadeInUp 0.4s ease;
   }
   .btn-start:hover { background: var(--emerald-700); transform: scale(1.02); }
+
+  .btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 0;
+    padding: 14px 24px;
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    color: var(--slate-200);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .btn-google:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+  .btn-google:disabled { opacity: 0.5; cursor: default; }
+  .btn-google svg { flex-shrink: 0; }
+
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px auto;
+    max-width: 320px;
+  }
+  .login-divider::before, .login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+  .login-divider span {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--slate-500);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
 
   .login-watermark {
     position: absolute;
@@ -1022,6 +1069,32 @@ const SE_COLORS = {
 };
 
 // ---- Name Resolution ----
+// Email → team member mapping
+const EMAIL_MAP = {
+  'cody@helloboolean.com': { name: 'Cody', role: 'admin' },
+  'chris@helloboolean.com': { name: 'Chris', role: 'admin' },
+  'marcel@helloboolean.com': { name: 'Marcel', role: 'se' },
+  'dan@helloboolean.com': { name: 'Dan', role: 'se' },
+  'rensy@helloboolean.com': { name: 'Rensy', role: 'se' },
+  'riz@helloboolean.com': { name: 'Riz', role: 'se' },
+  'celine@helloboolean.com': { name: 'Celine', role: 'se' },
+  'aervinn@helloboolean.com': { name: 'Aervinn', role: 'se' },
+  'veronica@helloboolean.com': { name: 'Veronica', role: 'se' },
+  'justin@helloboolean.com': { name: 'Justin', role: 'se' },
+  'eveguel@booleanreview.com': { name: 'Eveguel', role: 'se' },
+  'rod@booleanreview.com': { name: 'Rod', role: 'se' },
+};
+
+function resolveFromEmail(email) {
+  const lower = (email || '').toLowerCase();
+  const match = EMAIL_MAP[lower];
+  if (match) {
+    return { name: match.name, role: match.role, displayName: match.name, email: lower };
+  }
+  // Unknown email — spectator with their Google display name
+  return null;
+}
+
 function resolveUser(input) {
   const trimmed = (input || '').trim();
   if (!trimmed) return null;
@@ -1043,6 +1116,25 @@ function resolveUser(input) {
 
   // Spectator
   return { name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1), role: 'spectator', displayName: trimmed };
+}
+
+// Google Sign-In
+async function signInWithGoogle() {
+  if (!firebaseReady) return null;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ hd: 'helloboolean.com' });
+  try {
+    const result = await firebase.auth().signInWithPopup(provider);
+    const email = result.user.email;
+    const displayName = result.user.displayName || email.split('@')[0];
+    const resolved = resolveFromEmail(email);
+    if (resolved) return resolved;
+    // Not in the map — spectator with Google name
+    return { name: displayName, role: 'spectator', displayName, email };
+  } catch (e) {
+    console.error('Google sign-in failed:', e);
+    return null;
+  }
 }
 
 function blockedClass(b) {
@@ -1124,18 +1216,32 @@ function LoginScreen({ onLogin }) {
   const [resolved, setResolved] = useState(null);
   const [filling, setFilling] = useState(false);
   const [filled, setFilled] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
     const user = resolveUser(input);
     if (user) {
-      setResolved(user);
-      setFilling(true);
-      setTimeout(() => {
-        setFilling(false);
-        setFilled(true);
-      }, 2500);
+      startWelcome(user);
     }
+  }
+
+  async function handleGoogle() {
+    setGoogleLoading(true);
+    const user = await signInWithGoogle();
+    setGoogleLoading(false);
+    if (user) {
+      startWelcome(user);
+    }
+  }
+
+  function startWelcome(user) {
+    setResolved(user);
+    setFilling(true);
+    setTimeout(() => {
+      setFilling(false);
+      setFilled(true);
+    }, 2500);
   }
 
   function handleStart() {
@@ -1158,7 +1264,16 @@ function LoginScreen({ onLogin }) {
 
         {!resolved ? (
           <>
-            <p className="login-helper">Type your first name to get started</p>
+            {firebaseReady && (
+              <button className="btn-google" onClick={handleGoogle} disabled={googleLoading}>
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                {googleLoading ? 'Signing in...' : 'Sign in with Google'}
+              </button>
+            )}
+            <div className="login-divider">
+              <span>or</span>
+            </div>
+            <p className="login-helper">Type your first name</p>
             <form onSubmit={handleSubmit}>
               <input
                 className="login-input"
@@ -1205,7 +1320,7 @@ function EditModal({ entry, onSave, onClose }) {
   const [desc, setDesc] = useState(entry.desc);
   const [hours, setHours] = useState(entry.hours);
   const [blocked, setBlocked] = useState(entry.blocked);
-  const [energy, setEnergy] = useState(entry.energy != null ? entry.energy : 0);
+  const [energy, setEnergy] = useState(entry.energy != null ? Number(entry.energy) : 0);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -1366,7 +1481,7 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
           entry={editing}
           onClose={() => setEditing(null)}
           onSave={updated => {
-            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, se: updated.se, created: updated.created });
+            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, energy: updated.energy, se: updated.se, created: updated.created });
             setEditing(null);
           }}
         />
@@ -1599,7 +1714,7 @@ function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
           entry={editing}
           onClose={() => setEditing(null)}
           onSave={updated => {
-            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, se: updated.se || editing.se, created: updated.created || editing.created });
+            onEdit(updated.id, { client: updated.client, desc: updated.desc, hours: updated.hours, blocked: updated.blocked, energy: updated.energy, se: updated.se || editing.se, created: updated.created || editing.created });
             setEditing(null);
           }}
         />
