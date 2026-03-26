@@ -939,10 +939,11 @@ const AVATARS = {
   'Justin': 'https://avatars.slack-edge.com/2025-10-13/9700384800161_ce426d24c266e93f05a9_original.jpg',
   'Eveguel': 'https://avatars.slack-edge.com/2025-01-30/8374846470036_5659e4deefeee042cf6e_original.jpg',
   'Rod': 'https://avatars.slack-edge.com/2025-06-18/9065427757653_3b1092c6f59c4566b0e6_original.jpg',
+  'Aervinn': 'https://avatars.slack-edge.com/2025-11-16/9938853150929_5b6b9bbad91e643cecac_original.jpg',
   'Norman': 'https://avatars.slack-edge.com/2026-02-26/10584106690661_6991061e031e6303da21_original.png',
 };
 
-const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Veronica', 'Justin', 'Eveguel', 'Rod'];
+const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Aervinn', 'Veronica', 'Justin', 'Eveguel', 'Rod'];
 const ALL_NAMES = ['Cody', ...SE_NAMES];
 // Personas Cody can cycle through (admin only)
 const CODY_PERSONAS = ['Cody', 'Norman'];
@@ -960,7 +961,7 @@ const BLOCKED_OPTIONS = ['Waiting on client', 'Knowledge gap', 'No time', 'Dev/s
 const SE_COLORS = {
   Marcel: '#10b981', Dan: '#3b82f6', Rensy: '#f59e0b', Riz: '#ef4444',
   Celine: '#a855f7', Veronica: '#06b6d4', Cody: '#64748b',
-  Justin: '#ec4899', Eveguel: '#f97316', Rod: '#14b8a6',
+  Aervinn: '#ec4899', Justin: '#8b5cf6', Eveguel: '#f97316', Rod: '#14b8a6',
   Norman: '#f97316'
 };
 
@@ -1547,6 +1548,9 @@ function App() {
     // Veronica — lighter load, EA work
     s22: { se: 'Veronica', client: 'Integrity Painting', desc: 'Monthly billing reconciliation — subscription amounts in QBO don\'t match contract terms', hours: 3, blocked: 'Waiting on client', created: Date.now() - 6000 },
     s23: { se: 'Veronica', client: 'McLains Painting', desc: 'Client communication backlog — 4 unanswered support threads from last week', hours: 2, blocked: 'No time', created: Date.now() - 5000 },
+    s25: { se: 'Aervinn', client: 'Mikes Quality Painting', desc: 'PaintScout quote sync failing — estimates created manually in PS not pushing to HubSpot deal', hours: 8, blocked: 'Dev/system dependency', created: Date.now() - 3500 },
+    s26: { se: 'Aervinn', client: 'Emerson Paints', desc: 'Workflow automation for job scheduling — client wants automated crew assignment based on job type', hours: 6, blocked: 'Knowledge gap', created: Date.now() - 3000 },
+    s27: { se: 'Aervinn', client: 'Service Built', desc: 'New client onboarding — HubSpot pipeline setup, YCBM config, CompanyCam project templates', hours: 5, blocked: 'Not blocked', created: Date.now() - 2500 },
     s24: { se: 'Norman', client: 'Boolean (Internal)', desc: "Stare at Cody's poor attempt to build a meeting tool and say nothing because I'm @mention only", hours: 40, blocked: 'Not blocked', created: Date.now() - 4000 },
   });
 
