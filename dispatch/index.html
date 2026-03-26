@@ -572,6 +572,8 @@
     padding: 2px 8px;
     border-radius: 99px;
     letter-spacing: 0.01em;
+    white-space: nowrap;
+    width: fit-content;
   }
   .blocked-badge.waiting-on-client { background: var(--amber-100); color: #92400e; }
   .blocked-badge.knowledge-gap { background: var(--blue-100); color: #1e40af; }
@@ -1214,7 +1216,9 @@ function EntryFormView({ user, entries, onAdd, onEdit, onDelete }) {
     if (!hours) e.hours = true;
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
-    onAdd({ client, desc, hours: parseFloat(hours), blocked, se: user.name, created: Date.now() });
+    const entry = { client, desc, hours: parseFloat(hours), blocked, se: user.name, created: Date.now() };
+    console.log('Adding entry:', entry);
+    onAdd(entry);
     setClient(''); setDesc(''); setHours(''); setBlocked('Not blocked');
   }
 
