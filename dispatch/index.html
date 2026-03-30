@@ -1108,7 +1108,7 @@ const AVATARS = {
 };
 
 const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Aervinn', 'Veronica', 'Justin', 'Eveguel', 'Rod'];
-const ALL_NAMES = ['Cody', ...SE_NAMES];
+const ALL_NAMES = ['Cody', 'Chris', ...SE_NAMES];
 // Personas Cody can cycle through (admin only)
 const CODY_PERSONAS = ['Cody', 'Norman'];
 
@@ -1968,12 +1968,35 @@ function App() {
   }
 
   function handleRefresh() {
-    if (!window.confirm('Clear all entries and start fresh? This cannot be undone.')) return;
+    if (!window.confirm('Clear all entries and start fresh? A backup will be saved automatically.')) return;
     if (firebaseReady) {
-      removeFirebaseValue(`rooms/${ROOM_CODE}/entries`);
+      // Save backup before clearing
+      const backupKey = new Date().toISOString().replace(/[:.]/g, '-');
+      const currentEntries = entries;
+      if (currentEntries && Object.keys(currentEntries).length > 0) {
+        setFirebaseValue(`rooms/${ROOM_CODE}/backups/${backupKey}`, currentEntries)
+          .then(() => removeFirebaseValue(`rooms/${ROOM_CODE}/entries`));
+      } else {
+        removeFirebaseValue(`rooms/${ROOM_CODE}/entries`);
+      }
     } else {
       setLocalEntries({});
     }
+  }
+
+  function handleRestore() {
+    if (!firebaseReady || !db) { alert('Restore requires Firebase connection.'); return; }
+    db.ref(`rooms/${ROOM_CODE}/backups`).orderByKey().limitToLast(1).once('value').then(snap => {
+      const val = snap.val();
+      if (!val) { alert('No backups found.'); return; }
+      const lastKey = Object.keys(val)[0];
+      const backupEntries = val[lastKey];
+      const count = Object.keys(backupEntries).length;
+      const ts = lastKey.replace(/T/, ' ').replace(/-(\d{2})-(\d{2})-(\d+)Z/, ':$1:$2.$3Z').slice(0,19);
+      if (window.confirm(`Restore ${count} entries from backup at ${ts}? This will overwrite current entries.`)) {
+        setFirebaseValue(`rooms/${ROOM_CODE}/entries`, backupEntries);
+      }
+    });
   }
 
   if (!user) {
@@ -2054,9 +2077,14 @@ function App() {
             </button>
           )}
           {isAdmin && (
-            <button className="btn-refresh" onClick={handleRefresh}>
-              Refresh
-            </button>
+            <>
+              <button className="btn-header" onClick={handleRestore} style={{ borderColor: 'var(--amber-400)', color: 'var(--amber-400)' }}>
+                Restore
+              </button>
+              <button className="btn-refresh" onClick={handleRefresh}>
+                Refresh
+              </button>
+            </>
           )}
           <button className="btn-header" onClick={() => { setUser(null); try { localStorage.removeItem('dispatch_user'); } catch(e) {} if (firebaseReady) firebase.auth().signOut(); }} style={{ color: 'var(--slate-500)', borderColor: 'var(--slate-700)' }}>
             Leave
