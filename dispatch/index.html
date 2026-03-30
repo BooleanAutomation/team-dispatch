@@ -349,6 +349,7 @@
   }
   .role-badge.admin { background: rgba(16,185,129,0.15); color: var(--emerald-400); }
   .role-badge.se { background: rgba(59,130,246,0.15); color: var(--blue-400); }
+  .role-badge.dev { background: rgba(168,85,247,0.15); color: var(--purple-400); }
   .role-badge.viewer { background: rgba(148,163,184,0.15); color: var(--slate-400); }
   .role-badge.norman { background: rgba(249,115,22,0.15); color: #fb923c; }
 
@@ -1107,8 +1108,9 @@ const AVATARS = {
   'Norman': 'https://avatars.slack-edge.com/2026-02-26/10584106690661_6991061e031e6303da21_original.png',
 };
 
-const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Aervinn', 'Veronica', 'Justin', 'Eveguel', 'Rod'];
-const ALL_NAMES = ['Cody', 'Chris', ...SE_NAMES];
+const SE_NAMES = ['Marcel', 'Dan', 'Rensy', 'Riz', 'Celine', 'Aervinn', 'Veronica'];
+const DEV_NAMES = ['Justin', 'Eveguel', 'Rod'];
+const ALL_NAMES = ['Cody', 'Chris', ...SE_NAMES, ...DEV_NAMES];
 // Personas Cody can cycle through (admin only)
 const CODY_PERSONAS = ['Cody', 'Norman'];
 
@@ -1188,9 +1190,9 @@ const EMAIL_MAP = {
   'celine@helloboolean.com': { name: 'Celine', role: 'se' },
   'aervinn@helloboolean.com': { name: 'Aervinn', role: 'se' },
   'veronica@helloboolean.com': { name: 'Veronica', role: 'se' },
-  'justin@helloboolean.com': { name: 'Justin', role: 'se' },
-  'eveguel@booleanreview.com': { name: 'Eveguel', role: 'se' },
-  'rod@booleanreview.com': { name: 'Rod', role: 'se' },
+  'justin@helloboolean.com': { name: 'Justin', role: 'dev' },
+  'eveguel@booleanreview.com': { name: 'Eveguel', role: 'dev' },
+  'rod@booleanreview.com': { name: 'Rod', role: 'dev' },
 };
 
 function resolveFromEmail(email) {
@@ -1220,6 +1222,12 @@ function resolveUser(input) {
   const seMatch = SE_NAMES.find(n => n.toLowerCase() === lower);
   if (seMatch) {
     return { name: seMatch, role: 'se', displayName: seMatch };
+  }
+
+  // Dev check
+  const devMatch = DEV_NAMES.find(n => n.toLowerCase() === lower);
+  if (devMatch) {
+    return { name: devMatch, role: 'dev', displayName: devMatch };
   }
 
   // Spectator
@@ -1346,7 +1354,7 @@ function LoginScreen({ onLogin }) {
   // Welcome message by role
   const welcomeMsg = resolved
     ? resolved.role === 'admin' ? `Welcome back, ${resolved.name}.`
-    : resolved.role === 'se' ? `Hey ${resolved.name}, let's get your work logged.`
+    : (resolved.role === 'se' || resolved.role === 'dev') ? `Hey ${resolved.name}, let's get your work logged.`
     : `Welcome, ${resolved.displayName}. You'll be viewing the live board.`
     : '';
 
@@ -1577,7 +1585,7 @@ function ConsolidatedView({ entries, user, onReassign, onEdit, onDelete }) {
   const [editing, setEditing] = useState(null);
 
   const isAdmin = user.role === 'admin';
-  const isSE = user.role === 'se';
+  const isSE = user.role === 'se' || user.role === 'dev';
 
   const allEntries = useMemo(() => {
     if (!entries) return [];
@@ -1917,7 +1925,7 @@ function App() {
     if (!user) return;
     if (user.role === 'spectator') {
       setView(viewAllUnlocked ? 'consolidated' : 'waiting');
-    } else if (user.role === 'se' && view === 'consolidated' && !viewAllUnlocked) {
+    } else if ((user.role === 'se' || user.role === 'dev') && view === 'consolidated' && !viewAllUnlocked) {
       setView('form');
     }
   }, [user, viewAllUnlocked]);
@@ -2005,7 +2013,7 @@ function App() {
 
   const isAdmin = user.role === 'admin';
   const isCodyAdmin = isAdmin && user.name === 'Cody';
-  const isSE = user.role === 'se';
+  const isSE = user.role === 'se' || user.role === 'dev';
   const canAddEntries = isAdmin || isSE;
 
   // Persona: Cody can cycle between herself and Norman
@@ -2013,8 +2021,9 @@ function App() {
   const isNorman = activePersona === 'Norman';
   const displayName = isNorman ? 'Norman' : user.name;
 
-  const roleBadgeClass = isAdmin ? 'admin' : (isSE ? 'se' : 'viewer');
-  const roleBadgeLabel = isNorman ? 'Norman' : (isAdmin ? 'Admin' : (isSE ? 'SE' : 'Viewer'));
+  const isDev = user.role === 'dev';
+  const roleBadgeClass = isAdmin ? 'admin' : (isDev ? 'dev' : (isSE ? 'se' : 'viewer'));
+  const roleBadgeLabel = isNorman ? 'Norman' : (isAdmin ? 'Admin' : (isDev ? 'Dev' : (isSE ? 'SE' : 'Viewer')));
 
   function cyclePersona() {
     if (isCodyAdmin) {
