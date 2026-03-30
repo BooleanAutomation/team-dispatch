@@ -1089,6 +1089,50 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+// ---- Seed Data ----
+const SEED_ENTRIES = [
+  { se: 'Celine', client: 'Highfill Painting', desc: 'Investigate why some HubSpot deals tagged as Lost and being auto Declined in PaintScout', hours: 20, blocked: 'Not blocked', energy: 0 },
+  { se: 'Celine', client: '519 Painters', desc: 'Create "Schedule" option for contractor interface. Not yet sure on scope, didn\'t have a chance to fully review the request', hours: 60, blocked: 'Knowledge gap', energy: 0 },
+  { se: 'Celine', client: 'Highfill Painting', desc: 'Update Dependent Properties When Moving Deal Stage from Customer Accepted Proposal to Awaiting Deposit to Won', hours: 20, blocked: 'Not blocked', energy: 0 },
+  { se: 'Celine', client: 'Funky Painting', desc: 'Check/Investigate added a line for the client deposit and deducts the client deposit from the remaining balance. Invoice Creation Deducts Client Deposit Twice', hours: 10, blocked: 'Not blocked', energy: 0 },
+  { se: 'Cody', client: 'Boolean (Internal)', desc: 'Build dispatch', hours: 2, blocked: 'Knowledge gap', energy: 0 },
+  { se: 'Cody', client: 'Boolean (Internal)', desc: 'Figure out a new communication structure between SEs and Dev team', hours: 2, blocked: 'Not blocked', energy: 0 },
+  { se: 'Cody', client: 'Boolean (Internal)', desc: 'Meetings with clients with no scope boundaries', hours: 20, blocked: 'Not blocked', energy: 0 },
+  { se: 'Cody', client: 'Boolean (Internal)', desc: 'Implementation Playbook', hours: 40, blocked: 'No time', energy: 0 },
+  { se: 'Dan', client: 'Paragon Painting', desc: 'Commission Build - Sales Commission - PM Commission - Referral Commission - Google Review Commission', hours: 40, blocked: 'Not blocked', energy: 0 },
+  { se: 'Dan', client: 'Heiler Painting', desc: 'Migration (Sales and Marketing) from Make/Zapier to Prismatic - Migrating Sales', hours: 30, blocked: 'Not blocked', energy: 0 },
+  { se: 'Dan', client: 'McLains Painting', desc: 'Set Up additional MQL -> SQL YCBM autofill link for their campaign', hours: 10, blocked: 'Not blocked', energy: 0 },
+  { se: 'Dan', client: 'Paragon Painting', desc: 'Set Up additional MQL -> SQL YCBM autofill link for Seth', hours: 8, blocked: 'Not blocked', energy: 0 },
+  { se: 'Dan', client: 'Pro Rise Painting', desc: 'Recurring Revenue System', hours: 60, blocked: 'Not blocked', energy: 0 },
+  { se: 'Dan', client: 'Pro Rise Painting', desc: 'Fix automated emails when job is won (welcome, designer, washer)', hours: 6, blocked: 'Knowledge gap', energy: 0 },
+  { se: 'Dan', client: 'Paragon Painting', desc: 'Fix doubled amount in the invoices issue in Airtable vs QBO amounts', hours: 8, blocked: 'Dev/system dependency', energy: 0 },
+  { se: 'Eveguel', client: 'Boolean (Internal)', desc: 'Job Management Task: Not sure if I can modify some fields in Boolean Master Template', hours: 20, blocked: 'Not blocked', energy: 0 },
+  { se: 'Eveguel', client: 'GoPainting', desc: 'Go Painting: It\'s already fixed, just want to verify if it\'s good already in the client since they are silent?', hours: 1, blocked: 'Not blocked', energy: 0 },
+  { se: 'Justin', client: 'Boolean (Internal)', desc: 'CNI Migration - Moving all our integrations to CNI over the next several months', hours: 160, blocked: 'Not blocked', energy: 0 },
+  { se: 'Marcel', client: 'Blair Commercial Painting', desc: 'General tasks', hours: 40, blocked: 'Not blocked', energy: 0 },
+];
+
+function seedEntries() {
+  const now = Date.now();
+  const entries = {};
+  SEED_ENTRIES.forEach((entry, i) => {
+    const id = generateId() + i;
+    entries[id] = { ...entry, created: now - (SEED_ENTRIES.length - i) * 1000 };
+  });
+  return entries;
+}
+
+// ---- Seed Firebase on first load if empty ----
+if (firebaseReady && db) {
+  db.ref('rooms/BOOL/entries').once('value').then(snap => {
+    if (!snap.exists() || !snap.val() || Object.keys(snap.val()).length === 0) {
+      db.ref('rooms/BOOL/entries').set(seedEntries()).then(() => {
+        console.log('Seeded dispatch with initial data');
+      });
+    }
+  });
+}
+
 // ---- Constants ----
 const ROOM_CODE = 'BOOL';
 
